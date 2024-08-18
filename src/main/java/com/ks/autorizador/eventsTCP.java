@@ -6,8 +6,10 @@ import com.ks.lib.tcp.EventosTCP;
 import com.ks.lib.tcp.Servidor;
 import com.ks.lib.tcp.Tcp;
 import com.ks.lib.tcp.protocolos.Iso;
+import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -20,26 +22,28 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-public class ServidorTCP extends Servidor implements EventosTCP
+public class eventsTCP implements EventosTCP
 {
-    private static final Logger VMobjLog = LogManager.getLogger(ServidorTCP.class);
+    private static final Logger VMobjLog = LogManager.getLogger(eventsTCP.class);
 
-    private static ServidorTCP instance;
+    private static eventsTCP instance;
     private static String VMstrMensaje = "";
     private Timer timer;
+    private Tcp connection;
+    @Getter
+    private int numberConnections;
 
-    public static ServidorTCP getInstance()
+    public static eventsTCP getInstance()
     {
         if (instance == null)
         {
-            instance = new ServidorTCP();
+            instance = new eventsTCP();
         }
         return instance;
     }
 
-    private ServidorTCP()
+    private eventsTCP()
     {
-        setEventos(this);
         String ruta = Configuracion.getRuta() + "log";
         File VLioArchivo = new File(ruta);
         if (!VLioArchivo.exists())
@@ -79,13 +83,15 @@ public class ServidorTCP extends Servidor implements EventosTCP
 
     public void conexionEstablecida(Cliente cliente)
     {
-        escribe_log("Se recibio una conexion");
+        numberConnections++;
+        VMobjLog.info("Se recibio una conexion");
     }
 
 
     public void errorConexion(String s)
     {
-        escribe_log("Problema con el servidor de TCP");
+        numberConnections--;
+        VMobjLog.error("Problema con la conexion TCP {}", s);
     }
 
 
@@ -128,6 +134,18 @@ public class ServidorTCP extends Servidor implements EventosTCP
     public void cerrarConexion(Cliente cliente)
     {
 
+    }
+
+    @Override
+    public void setLogger(Marker marker)
+    {
+
+    }
+
+    public void setConnection(Tcp connection)
+    {
+        this.connection = connection;
+        Transaccion.setConnection(connection);
     }
 
 

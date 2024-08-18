@@ -1,28 +1,34 @@
 package com.ks.autorizador;
 
+import com.ks.lib.tcp.Tcp;
 import com.ks.lib.tcp.protocolos.Iso;
 import com.ks.lib.tcp.protocolos.IsoMain;
 import com.ks.lib.tcp.protocolos.IsoProsa;
+import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Random;
 
 
-public class Transaccion extends Thread
+public class Transaccion
+        extends Thread
 {
     private static final Logger VMobjLog = LogManager.getLogger(Transaccion.class);
 
-    private static int totales;
-    private static int rechazadas;
-    private static int autorizadas;
+    private static int      totales;
+    private static int      rechazadas;
+    private static int      autorizadas;
     private static ISO_TYPE iso_type;
+    @Setter
+    private static Tcp      connection;
 
     private String transaccion;
 
     public enum ISO_TYPE
     {
-        PROSA, EGLOBAL;
+        PROSA,
+        EGLOBAL;
 
         public static ISO_TYPE fromValue(String value)
         {
@@ -48,7 +54,7 @@ public class Transaccion extends Thread
     {
         try
         {
-            String respuesta = "";
+            String  respuesta = "";
             IsoMain datos;
             if (iso_type.equals(ISO_TYPE.PROSA))
             {
@@ -74,8 +80,8 @@ public class Transaccion extends Thread
                     if (monto < 500000)
                     {
                         autorizadas += 1;
-                        Random aleatorio = new Random();
-                        int autorizacion = aleatorio.nextInt(1000000);
+                        Random aleatorio    = new Random();
+                        int    autorizacion = aleatorio.nextInt(1000000);
                         datos.getCampos()[38] = String.format("%06d", autorizacion);
                         datos.getCampos()[39] = "00";
                     }
@@ -105,14 +111,14 @@ public class Transaccion extends Thread
                     break;
             }
 
-            if ((respuesta.length() > 0) && (ServidorTCP.getInstance().getClientesConectados() > 0))
+            if ((respuesta.length() > 0) && (eventsTCP.getInstance().getNumberConnections() > 0))
             {
                 String len = Iso.obtenerLongitud(respuesta.length());
                 if (VMobjLog.isDebugEnabled())
                 {
                     VMobjLog.debug("Mensaje enviado: " + len + respuesta);
                 }
-                ServidorTCP.getInstance().enviar(len + respuesta);
+                connection.enviar(len + respuesta);
             }
         }
         catch (Exception ex)
@@ -145,4 +151,5 @@ public class Transaccion extends Thread
     {
         this.transaccion = transaccion;
     }
+
 }
