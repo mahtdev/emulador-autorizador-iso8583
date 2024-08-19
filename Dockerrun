@@ -1,0 +1,5 @@
+podman run --name emulador \
+       -v /opt/ks/emisor/emulador/bin:/app/emulador/bin \
+       -v /opt/ks/emisor/emulador/log:/app/emulador/log \
+       -v /opt/ks/emisor/emulador/config:/app/emulador/config \
+       -d emulador_trx:1.3.0.1
